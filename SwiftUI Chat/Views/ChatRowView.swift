@@ -11,6 +11,9 @@ import SwiftUI
 // ChatRow will be a view similar to a Cell in standard Swift
 struct ChatRowView : View {
     let isMe: Bool
+    // Like status
+    @State var isLiked: Bool = false
+    @State private var likeScale = 0.0
     // we will need to access and represent the chatMessages here
     var chatMessage: ChatMessage
     // body - is the body of the view, just like the body of the first view we created when opened the project
@@ -34,9 +37,16 @@ struct ChatRowView : View {
                             .foregroundColor(Color.white)
                             .background(Color(chatMessage.color))
                             .cornerRadius(10)
+                            .overlay(
+                                Text("❤️")
+                                    .scaleEffect(likeScale)
+                                    .offset(x: 8, y: 8),
+                                alignment: .bottomTrailing)
                     }
                     Spacer()
                 }
+                .clipShape(Rectangle())
+                .onTapGesture(count: 2, perform: doubleTap)
                 .frame(maxWidth: .infinity)
             } else {
                 HStack {
@@ -48,6 +58,11 @@ struct ChatRowView : View {
                             .padding(10)
                             .background(Color(chatMessage.color))
                             .cornerRadius(10)
+                            .overlay(
+                                Text("❤️")
+                                    .scaleEffect(likeScale)
+                                    .offset(x: -8, y: 8),
+                                alignment: .bottomLeading)
                         Text(chatMessage.avatar)
                             .fontWeight(.bold)
                             .padding()
@@ -60,15 +75,30 @@ struct ChatRowView : View {
                 .frame(maxWidth: .infinity)
             }
         }
+        .onAppear {
+            likeScale = isLiked ? 1.0 : 0.0
+        }
         
+    }
+    
+    func doubleTap() {
+        isLiked.toggle()
+        withAnimation {
+            likeScale = isLiked ? 1.0 : 0.0
+        }
     }
 }
 
 #if DEBUG
 struct ChatRowView_Previews : PreviewProvider {
     static var previews: some View {
-        ChatRowView(isMe: false, chatMessage: ChatMessage(uuid: UUID(), message: "Message", avatar: "A", color: "Green"))
-        ChatRowView(isMe: true, chatMessage: ChatMessage(uuid: UUID(), message: "Message", avatar: "B", color: "Red"))
+        Group {
+            ChatRowView(isMe: false, chatMessage: ChatMessage(uuid: UUID(), message: "Message", avatar: "A", color: "Green"))
+            ChatRowView(isMe: false, isLiked: true, chatMessage: ChatMessage(uuid: UUID(), message: "Liked Message", avatar: "A", color: "Green"))
+            ChatRowView(isMe: true, chatMessage: ChatMessage(uuid: UUID(), message: "Message", avatar: "B", color: "Red"))
+            ChatRowView(isMe: true, isLiked: true, chatMessage: ChatMessage(uuid: UUID(), message: "Message", avatar: "B", color: "Red"))
+        }
+        .previewLayout(.sizeThatFits)
     }
 }
 #endif
